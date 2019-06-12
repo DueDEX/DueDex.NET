@@ -31,6 +31,10 @@ namespace DueDex
         /// </summary>
         public event EventHandler<OrderbookUpdatedEventArgs> OrderbookUpdated;
         /// <summary>
+        /// Occurs when new matches happen under an instrument.
+        /// </summary>
+        public event EventHandler<MatchesUpdatedEventArgs> MatchesUpdated;
+        /// <summary>
         /// Occurs when the list of active orders is loaded.
         /// </summary>
         public event EventHandler<OrdersLoadedEventArgs> OrdersLoaded;
@@ -440,6 +444,12 @@ namespace DueDex
                                         orderbook.UpdateBid(bid[0], (long)bid[1]);
 
                                     OrderbookUpdated?.Invoke(this, new OrderbookUpdatedEventArgs(updateMessage.Instrument, orderbook, updateMessage.Timestamp));
+                                }
+                                else if (channel == "matches")
+                                {
+                                    var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Match>>>(messageReceived);
+
+                                    MatchesUpdated?.Invoke(this, new MatchesUpdatedEventArgs(updateMessage.Instrument, updateMessage.Data, updateMessage.Timestamp));
                                 }
                                 else if (channel == "margins")
                                 {

@@ -3,17 +3,17 @@ using System.Runtime.Serialization;
 namespace DueDex
 {
     /// <summary>
-    /// Order side
+    /// Represents an order's direction
     /// </summary>
     public enum OrderSide
     {
         /// <summary>
-        /// Buy order
+        /// Buy / long order
         /// </summary>
         [EnumMember(Value = "long")]
         Long = 0,
         /// <summary>
-        /// Sell order
+        /// Sell / short order
         /// </summary>
         [EnumMember(Value = "short")]
         Short = 1,

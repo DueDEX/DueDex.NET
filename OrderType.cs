@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 namespace DueDex
 {
     /// <summary>
-    /// Order type
+    /// Represents an order's type.
     /// </summary>
     public enum OrderType
     {
