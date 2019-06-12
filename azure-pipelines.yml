@@ -1,0 +1,55 @@
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+name: '0.9.0$(rev:.r)'
+
+variables:
+  parameters.restoreBuildProjects: '**/DueDex.NET.csproj'
+
+trigger:
+- master
+
+jobs:
+- job: BuildJob
+
+  displayName: Build Job
+
+  pool:
+    name: Default
+
+  variables:
+    buildConfiguration: 'Release'
+
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: '$(parameters.restoreBuildProjects)'
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      projects: '$(parameters.restoreBuildProjects)'
+      arguments: '--configuration $(buildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: '$(parameters.restoreBuildProjects)'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
+      zipAfterPublish: false
+      modifyOutputPath: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+    condition: succeededOrFailed()
