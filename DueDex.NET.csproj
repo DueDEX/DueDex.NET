@@ -4,6 +4,27 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+	<PropertyGroup>
+  	<Company>DueDEX Ltd.</Company>
+		<Copyright>Copyright © DueDEX Ltd. 2019</Copyright>
+		<Description>The official C# client SDK for DueDEX</Description>
+		<PackageTags>duedex</PackageTags>
+		<PackageProjectUrl>https://github.com/DueDEX/DueDex.NET</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/DueDEX/DueDex.NET</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+	<PropertyGroup>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.1.0.0</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
+	</PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
