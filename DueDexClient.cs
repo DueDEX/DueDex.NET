@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -25,6 +26,8 @@ namespace DueDex
         public event EventHandler<OrderbookUpdatedEventArgs> OrderbookUpdated;
         public event EventHandler<OrdersLoadedEventArgs> OrdersLoaded;
         public event EventHandler<OrdersUpdatedEventArgs> OrdersUpdated;
+
+        private readonly ILogger<DueDexClient> logger;
 
         private readonly ApiKeyPair apiKeyPair;
         private readonly string restBaseUrl;
@@ -47,26 +50,28 @@ namespace DueDex
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
-        public DueDexClient() : this(NetworkType.Mainnet) { }
+        public DueDexClient(ILogger<DueDexClient> logger = null) : this(NetworkType.Mainnet, logger) { }
 
-        public DueDexClient(NetworkType network)
+        public DueDexClient(NetworkType network, ILogger<DueDexClient> logger = null)
         {
             this.restBaseUrl = network.GetRestBaseUrl();
             this.webSocketEndpoint = network.GetWebSocketEndpoint();
+            this.logger = logger;
         }
 
-        public DueDexClient(string apiKey, string apiSecret) : this(apiKey, apiSecret, NetworkType.Mainnet) { }
+        public DueDexClient(string apiKey, string apiSecret, ILogger<DueDexClient> logger = null) : this(apiKey, apiSecret, NetworkType.Mainnet, logger) { }
 
-        public DueDexClient(string apiKey, string apiSecret, NetworkType network) : this(network)
+        public DueDexClient(string apiKey, string apiSecret, NetworkType network, ILogger<DueDexClient> logger = null) : this(network, logger)
         {
             this.apiKeyPair = new ApiKeyPair(apiKey, apiSecret);
         }
 
-        public DueDexClient(string apiKey, string apiSecret, string restBaseUrl, string webSocketEndpoint)
+        public DueDexClient(string apiKey, string apiSecret, string restBaseUrl, string webSocketEndpoint, ILogger<DueDexClient> logger = null)
         {
             this.apiKeyPair = new ApiKeyPair(apiKey, apiSecret);
             this.restBaseUrl = restBaseUrl;
             this.webSocketEndpoint = webSocketEndpoint;
+            this.logger = logger;
         }
 
         public async Task<Order> NewLimitCloseOrderAsync(string instrument, decimal price, TimeInForce timeInForce = TimeInForce.Gtc)
@@ -325,7 +330,7 @@ namespace DueDex
 
                         // Complete message
                         string messageReceived = msgBuilder.ToString();
-                        Console.WriteLine($"Message from DueDEX: {messageReceived}");
+                        logger?.LogTrace($"Message from DueDEX: {messageReceived}");
 
                         // Deserialize message
                         try
@@ -455,13 +460,13 @@ namespace DueDex
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Error parsing DueDEX message: {ex}");
+                            logger?.LogError($"Error parsing DueDEX message: {ex}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in DueDEX client: {ex}");
+                    logger?.LogError($"Error in DueDEX client: {ex}");
                 }
             }
         }
