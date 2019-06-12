@@ -8,6 +8,7 @@
   	<Company>DueDEX Ltd.</Company>
 		<Copyright>Copyright © DueDEX Ltd. 2019</Copyright>
 		<Description>The official C# client SDK for DueDEX</Description>
+		<PackageIconUrl>https://raw.githubusercontent.com/DueDEX/DueDex.NET/master/Resources/DueDEX.png</PackageIconUrl>
 		<PackageTags>duedex</PackageTags>
 		<PackageProjectUrl>https://github.com/DueDEX/DueDex.NET</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
