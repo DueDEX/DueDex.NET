@@ -3,6 +3,9 @@ using DueDex.Models;
 
 namespace DueDex
 {
+    /// <summary>
+    /// Provides data for the DueDexClient.OrderbookUpdated event.
+    /// </summary>
     public class OrderbookUpdatedEventArgs : EventArgs
     {
         public string Instrument { get; }

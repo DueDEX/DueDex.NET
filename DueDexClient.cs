@@ -21,11 +21,31 @@ using DueDex.Models;
 
 namespace DueDex
 {
+    /// <summary>
+    /// The client for interacting with DueDEX REST and WebSocket APIs.
+    /// </summary>
     public class DueDexClient
     {
+        /// <summary>
+        /// Occurs when an orderbook is initialized or updated.
+        /// </summary>
         public event EventHandler<OrderbookUpdatedEventArgs> OrderbookUpdated;
+        /// <summary>
+        /// Occurs when the list of active orders is loaded.
+        /// </summary>
         public event EventHandler<OrdersLoadedEventArgs> OrdersLoaded;
+        /// <summary>
+        /// Occurs when orders are updated.
+        /// </summary>
         public event EventHandler<OrdersUpdatedEventArgs> OrdersUpdated;
+        /// <summary>
+        /// Occurs when the list of margins is loaded.
+        /// </summary>
+        public event EventHandler<MarginsLoadedEventArgs> MarginsLoaded;
+        /// <summary>
+        /// Occurs when margins are updated.
+        /// </summary>
+        public event EventHandler<MarginsUpdatedEventArgs> MarginsUpdated;
 
         private readonly ILogger<DueDexClient> logger;
 
@@ -38,6 +58,7 @@ namespace DueDex
 
         private Dictionary<string, Orderbook> orderbooks = new Dictionary<string, Orderbook>();
         private Dictionary<OrderUid, Order> orders;
+        private Dictionary<string, Margin> margins;
 
         private readonly HashSet<Channel> channels = new HashSet<Channel>();
 
@@ -50,6 +71,10 @@ namespace DueDex
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
+        /// <summary>
+        /// Initialize an anonymous client.
+        /// </summary>
+        /// <param name="logger">Logger</param>
         public DueDexClient(ILogger<DueDexClient> logger = null) : this(NetworkType.Mainnet, logger) { }
 
         public DueDexClient(NetworkType network, ILogger<DueDexClient> logger = null)
@@ -282,6 +307,8 @@ namespace DueDex
             var response = await httpClient.SendAsync(hrm);
             string content = await response.Content.ReadAsStringAsync();
 
+            logger.LogTrace($"REST response from DueDEX on {method} {path}: {content}");
+
             var resObj = JsonConvert.DeserializeObject<ApiResponse<T>>(content);
 
             if (resObj.Code != 0)
@@ -372,6 +399,18 @@ namespace DueDex
 
                                     OrderbookUpdated?.Invoke(this, new OrderbookUpdatedEventArgs(snapshotMessage.Instrument, orderbook, snapshotMessage.Timestamp));
                                 }
+                                else if (channel == "margins")
+                                {
+                                    var snapshotMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Margin>>>(messageReceived);
+
+                                    margins = new Dictionary<string, Margin>();
+                                    foreach (var margin in snapshotMessage.Data)
+                                    {
+                                        margins.Add(margin.Currency, margin);
+                                    }
+
+                                    MarginsLoaded?.Invoke(this, new MarginsLoadedEventArgs(margins, snapshotMessage.Timestamp));
+                                }
                                 else if (channel == "orders")
                                 {
                                     var snapshotMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Order>>>(messageReceived);
@@ -401,6 +440,46 @@ namespace DueDex
                                         orderbook.UpdateBid(bid[0], (long)bid[1]);
 
                                     OrderbookUpdated?.Invoke(this, new OrderbookUpdatedEventArgs(updateMessage.Instrument, orderbook, updateMessage.Timestamp));
+                                }
+                                else if (channel == "margins")
+                                {
+                                    var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<MarginUpdate>>>(messageReceived);
+
+                                    var updatedMargins = new Dictionary<string, Margin>();
+
+                                    foreach (var update in updateMessage.Data)
+                                    {
+                                        if (margins.TryGetValue(update.Currency, out var existingMargin))
+                                        {
+                                            existingMargin.Convert(order =>
+                                            {
+                                                foreach (var property in update.GetType().GetProperties())
+                                                    if (!(property.GetValue(update) is null))
+                                                        existingMargin.GetType().GetProperty(property.Name).SetValue(existingMargin, property.GetValue(update));
+                                            });
+
+                                            updatedMargins[update.Currency] = existingMargin;
+                                        }
+                                        else
+                                        {
+                                            // New currency
+                                            var newMargin = new Margin(
+                                                update.Currency,
+                                                update.Available.Value,
+                                                update.OrderMargin.Value,
+                                                update.PositionMargin.Value,
+                                                update.RealisedPnl.Value,
+                                                update.UnrealisedPnl.Value
+                                            );
+
+                                            margins.Add(update.Currency, newMargin);
+
+                                            updatedMargins[update.Currency] = newMargin;
+                                        }
+                                    }
+
+
+                                    MarginsUpdated?.Invoke(this, new MarginsUpdatedEventArgs(updatedMargins, margins, updateMessage.Timestamp));
                                 }
                                 else if (channel == "orders")
                                 {

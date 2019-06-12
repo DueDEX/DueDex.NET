@@ -4,9 +4,18 @@ using DueDex.Internal;
 
 namespace DueDex
 {
+    /// <summary>
+    /// DueDEX network type
+    /// </summary>
     public enum NetworkType
     {
+        /// <summary>
+        /// DueDEX mainnet
+        /// </summary>
         Mainnet = 0,
+        /// <summary>
+        /// DueDEX testnet
+        /// </summary>
         Testnet = 1,
     }
 

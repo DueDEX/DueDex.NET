@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace DueDex
+namespace DueDex.Internal
 {
-    public class Channel
+    internal class Channel
     {
         public ChannelType Name { get; }
         public string Instrument { get; }

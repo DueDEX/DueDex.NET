@@ -4,6 +4,9 @@ using DueDex.Models;
 
 namespace DueDex
 {
+    /// <summary>
+    /// Provides data for the DueDexClient.OrdersLoaded event.
+    /// </summary>
     public class OrdersLoadedEventArgs : EventArgs
     {
         public IReadOnlyDictionary<OrderUid, Order> ActiveOrders { get; }

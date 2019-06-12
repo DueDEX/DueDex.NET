@@ -2,9 +2,18 @@ using System.Collections.Generic;
 
 namespace DueDex
 {
+    /// <summary>
+    /// A globally unique identifier for orders.
+    /// </summary>
     public class OrderUid
     {
+        /// <summary>
+        /// Id of the instrument the order is under
+        /// </summary>
         public string Instrument { get; }
+        /// <summary>
+        /// The order id assigned by the exchange
+        /// </summary>
         public long OrderId { get; }
 
         public OrderUid(string instrument, long orderId)
