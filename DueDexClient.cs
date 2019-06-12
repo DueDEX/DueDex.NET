@@ -23,6 +23,7 @@ namespace DueDex
     public class DueDexClient
     {
         public event EventHandler<OrderbookUpdatedEventArgs> OrderbookUpdated;
+        public event EventHandler<OrdersLoadedEventArgs> OrdersLoaded;
         public event EventHandler<OrdersUpdatedEventArgs> OrdersUpdated;
 
         private readonly ApiKeyPair apiKeyPair;
@@ -377,7 +378,7 @@ namespace DueDex
                                             orders.Add(new OrderUid(order.Instrument, order.OrderId), order);
                                     }
 
-                                    OrdersUpdated?.Invoke(this, new OrdersUpdatedEventArgs(orders, snapshotMessage.Timestamp));
+                                    OrdersLoaded?.Invoke(this, new OrdersLoadedEventArgs(orders, snapshotMessage.Timestamp));
                                 }
                             }
                             else if (messageType == "update")
@@ -400,6 +401,8 @@ namespace DueDex
                                 {
                                     var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<OrderUpdate>>>(messageReceived);
 
+                                    var updatedOrders = new Dictionary<OrderUid, Order>();
+
                                     foreach (var update in updateMessage.Data)
                                     {
                                         var orderUid = new OrderUid(update.Instrument, update.OrderId);
@@ -415,6 +418,8 @@ namespace DueDex
 
                                             if (existingOrder.Status == OrderStatus.Filled || existingOrder.Status == OrderStatus.Cancelled)
                                                 orders.Remove(orderUid);
+
+                                            updatedOrders[orderUid] = existingOrder;
                                         }
                                         else
                                         {
@@ -439,10 +444,12 @@ namespace DueDex
 
                                             if (newOrder.Status != OrderStatus.Filled && newOrder.Status != OrderStatus.Cancelled)
                                                 orders.Add(orderUid, newOrder);
+
+                                            updatedOrders[orderUid] = newOrder;
                                         }
                                     }
 
-                                    OrdersUpdated?.Invoke(this, new OrdersUpdatedEventArgs(orders, updateMessage.Timestamp));
+                                    OrdersUpdated?.Invoke(this, new OrdersUpdatedEventArgs(updatedOrders, orders, updateMessage.Timestamp));
                                 }
                             }
                         }
