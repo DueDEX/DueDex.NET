@@ -35,6 +35,10 @@ namespace DueDex
         /// </summary>
         public event EventHandler<MatchesUpdatedEventArgs> MatchesUpdated;
         /// <summary>
+        /// Occurs when instrument tickers are updated.
+        /// </summary>
+        public event EventHandler<TickerUpdatedEventArgs> TickerUpdated;
+        /// <summary>
         /// Occurs when the list of active orders is loaded.
         /// </summary>
         public event EventHandler<OrdersLoadedEventArgs> OrdersLoaded;
@@ -50,8 +54,16 @@ namespace DueDex
         /// Occurs when margins are updated.
         /// </summary>
         public event EventHandler<MarginsUpdatedEventArgs> MarginsUpdated;
+        /// <summary>
+        /// Occurs when the list of positions is loaded.
+        /// </summary>
+        public event EventHandler<PositionsLoadedEventArgs> PositionsLoaded;
+        /// <summary>
+        /// Occurs when positions are updated.
+        /// </summary>
+        public event EventHandler<PositionsUpdatedEventArgs> PositionsUpdated;
 
-        private readonly ILogger<DueDexClient> logger;
+        private readonly ILogger logger;
 
         private readonly ApiKeyPair apiKeyPair;
         private readonly string restBaseUrl;
@@ -61,8 +73,10 @@ namespace DueDex
         private HttpClient httpClient = new HttpClient();
 
         private Dictionary<string, Orderbook> orderbooks = new Dictionary<string, Orderbook>();
+        private Dictionary<string, Ticker> tickers = new Dictionary<string, Ticker>();
         private Dictionary<OrderUid, Order> orders;
         private Dictionary<string, Margin> margins;
+        private Dictionary<string, Position> positions;
 
         private readonly HashSet<Channel> channels = new HashSet<Channel>();
 
@@ -76,28 +90,39 @@ namespace DueDex
         };
 
         /// <summary>
-        /// Initialize an anonymous client.
+        /// Initialize an anonymous client to DueDEX mainnet.
         /// </summary>
         /// <param name="logger">Logger</param>
         public DueDexClient(ILogger<DueDexClient> logger = null) : this(NetworkType.Mainnet, logger) { }
 
-        public DueDexClient(NetworkType network, ILogger<DueDexClient> logger = null)
-        {
-            this.restBaseUrl = network.GetRestBaseUrl();
-            this.webSocketEndpoint = network.GetWebSocketEndpoint();
-            this.logger = logger;
-        }
+        /// <summary>
+        /// Initialize an anonymous client to the specified network.
+        /// </summary>
+        /// <param name="network">The DueDEX network to connect to</param>
+        /// <param name="logger">Logger</param>
+        public DueDexClient(NetworkType network, ILogger<DueDexClient> logger = null) : this(null, null, network, logger) { }
 
+        /// <summary>
+        /// Initialize an authenticated client DueDEX mainnet.
+        /// </summary>
+        /// <param name="apiKey">DueDEX API key</param>
+        /// <param name="apiSecret">DueDEX API secret</param>
+        /// <param name="logger">Logger</param>
         public DueDexClient(string apiKey, string apiSecret, ILogger<DueDexClient> logger = null) : this(apiKey, apiSecret, NetworkType.Mainnet, logger) { }
 
-        public DueDexClient(string apiKey, string apiSecret, NetworkType network, ILogger<DueDexClient> logger = null) : this(network, logger)
-        {
-            this.apiKeyPair = new ApiKeyPair(apiKey, apiSecret);
-        }
+        /// <summary>
+        /// Initialize an authenticated client to the specified network.
+        /// </summary>
+        /// <param name="apiKey">DueDEX API key</param>
+        /// <param name="apiSecret">DueDEX API secret</param>
+        /// <param name="network">The DueDEX network to connect to</param>
+        /// <param name="logger">Logger</param>
+        public DueDexClient(string apiKey, string apiSecret, NetworkType network, ILogger<DueDexClient> logger = null) : this(apiKey, apiSecret, network.GetRestBaseUrl(), network.GetWebSocketEndpoint(), logger) { }
 
-        public DueDexClient(string apiKey, string apiSecret, string restBaseUrl, string webSocketEndpoint, ILogger<DueDexClient> logger = null)
+        private DueDexClient(string apiKey, string apiSecret, string restBaseUrl, string webSocketEndpoint, ILogger<DueDexClient> logger = null)
         {
-            this.apiKeyPair = new ApiKeyPair(apiKey, apiSecret);
+            if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(apiSecret))
+                this.apiKeyPair = new ApiKeyPair(apiKey, apiSecret);
             this.restBaseUrl = restBaseUrl;
             this.webSocketEndpoint = webSocketEndpoint;
             this.logger = logger;
@@ -403,6 +428,14 @@ namespace DueDex
 
                                     OrderbookUpdated?.Invoke(this, new OrderbookUpdatedEventArgs(snapshotMessage.Instrument, orderbook, snapshotMessage.Timestamp));
                                 }
+                                else if (channel == "ticker")
+                                {
+                                    var snapshotMessage = JsonConvert.DeserializeObject<ChannelMessage<Ticker>>(messageReceived);
+
+                                    tickers[snapshotMessage.Instrument] = snapshotMessage.Data;
+
+                                    TickerUpdated?.Invoke(this, new TickerUpdatedEventArgs(snapshotMessage.Instrument, snapshotMessage.Data, snapshotMessage.Timestamp));
+                                }
                                 else if (channel == "margins")
                                 {
                                     var snapshotMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Margin>>>(messageReceived);
@@ -428,6 +461,18 @@ namespace DueDex
 
                                     OrdersLoaded?.Invoke(this, new OrdersLoadedEventArgs(orders, snapshotMessage.Timestamp));
                                 }
+                                else if (channel == "positions")
+                                {
+                                    var snapshotMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Position>>>(messageReceived);
+
+                                    positions = new Dictionary<string, Position>();
+                                    foreach (var position in snapshotMessage.Data)
+                                    {
+                                        positions.Add(position.Instrument, position);
+                                    }
+
+                                    PositionsLoaded?.Invoke(this, new PositionsLoadedEventArgs(positions, snapshotMessage.Timestamp));
+                                }
                             }
                             else if (messageType == "update")
                             {
@@ -450,6 +495,20 @@ namespace DueDex
                                     var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Match>>>(messageReceived);
 
                                     MatchesUpdated?.Invoke(this, new MatchesUpdatedEventArgs(updateMessage.Instrument, updateMessage.Data, updateMessage.Timestamp));
+                                }
+                                else if (channel == "ticker")
+                                {
+                                    var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<TickerUpdate>>(messageReceived);
+
+                                    var existingTicker = tickers[updateMessage.Instrument];
+                                    existingTicker.Convert(order =>
+                                    {
+                                        foreach (var property in updateMessage.Data.GetType().GetProperties())
+                                            if (!(property.GetValue(updateMessage.Data) is null))
+                                                existingTicker.GetType().GetProperty(property.Name).SetValue(existingTicker, property.GetValue(updateMessage.Data));
+                                    });
+
+                                    TickerUpdated?.Invoke(this, new TickerUpdatedEventArgs(updateMessage.Instrument, existingTicker, updateMessage.Timestamp));
                                 }
                                 else if (channel == "margins")
                                 {
@@ -487,7 +546,6 @@ namespace DueDex
                                             updatedMargins[update.Currency] = newMargin;
                                         }
                                     }
-
 
                                     MarginsUpdated?.Invoke(this, new MarginsUpdatedEventArgs(updatedMargins, margins, updateMessage.Timestamp));
                                 }
@@ -544,6 +602,53 @@ namespace DueDex
                                     }
 
                                     OrdersUpdated?.Invoke(this, new OrdersUpdatedEventArgs(updatedOrders, orders, updateMessage.Timestamp));
+                                }
+                                else if (channel == "positions")
+                                {
+                                    var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<PositionUpdate>>>(messageReceived);
+
+                                    var updatedPositions = new Dictionary<string, Position>();
+
+                                    foreach (var update in updateMessage.Data)
+                                    {
+                                        if (positions.TryGetValue(update.Instrument, out var existingPosition))
+                                        {
+                                            existingPosition.Convert(order =>
+                                            {
+                                                foreach (var property in update.GetType().GetProperties())
+                                                    if (!(property.GetValue(update) is null))
+                                                        existingPosition.GetType().GetProperty(property.Name).SetValue(existingPosition, property.GetValue(update));
+                                            });
+
+                                            updatedPositions[update.Instrument] = existingPosition;
+                                        }
+                                        else
+                                        {
+                                            // New instrument
+                                            var newPosition = new Position(
+                                                update.Instrument,
+                                                update.Quantity.Value,
+                                                update.Leverage.Value,
+                                                update.EntryValue.Value,
+                                                update.EntryPrice.Value,
+                                                update.MarkPrice.Value,
+                                                update.LiquidationPrice.Value,
+                                                update.PositionMargin.Value,
+                                                update.BuyOrderMargin.Value,
+                                                update.SellOrderMargin.Value,
+                                                update.UnrealisedPnl.Value,
+                                                update.RealisedPnl.Value,
+                                                update.RiskValue.Value,
+                                                update.RiskLimit.Value
+                                            );
+
+                                            positions.Add(update.Instrument, newPosition);
+
+                                            updatedPositions[update.Instrument] = newPosition;
+                                        }
+                                    }
+
+                                    PositionsUpdated?.Invoke(this, new PositionsUpdatedEventArgs(updatedPositions, positions, updateMessage.Timestamp));
                                 }
                             }
                         }
