@@ -4,7 +4,13 @@ namespace DueDex.Models
 {
     public class Orderbook
     {
+        /// <summary>
+        /// A two-dimensional array containing price levels on the ask side
+        /// </summary>
         public IReadOnlyDictionary<decimal, long> Asks { get { return asks; } }
+        /// <summary>
+        /// A two-dimensional array containing price levels on the bid side
+        /// </summary>
         public IReadOnlyDictionary<decimal, long> Bids { get { return bids; } }
 
         private readonly SortedDictionary<decimal, long> asks = new SortedDictionary<decimal, long>();

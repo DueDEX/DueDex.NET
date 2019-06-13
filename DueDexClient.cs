@@ -69,6 +69,8 @@ namespace DueDex
         private readonly string restBaseUrl;
         private readonly string webSocketEndpoint;
 
+        private Thread webSocketThread;
+
         private ClientWebSocket webSocketClient;
         private HttpClient httpClient = new HttpClient();
 
@@ -128,46 +130,124 @@ namespace DueDex
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Place a new limit close order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewLimitCloseOrderAsync(string instrument, decimal price, TimeInForce timeInForce = TimeInForce.Gtc)
         {
             return await NewLimitCloseOrderAsync(instrument, null, price, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new limit close order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewLimitCloseOrderAsync(string instrument, string clientOrderId, decimal price, TimeInForce timeInForce = TimeInForce.Gtc)
         {
             return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, true, null, price, null, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new market close order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketCloseOrderAsync(string instrument, TimeInForce timeInForce = TimeInForce.Ioc)
         {
             return await NewMarketCloseOrderAsync(instrument, null, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new market close order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketCloseOrderAsync(string instrument, string clientOrderId, TimeInForce timeInForce = TimeInForce.Ioc)
         {
             return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, true, null, null, null, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new limit order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc)
         {
             return await NewLimitOrderAsync(instrument, null, side, price, size, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new limit order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc)
         {
             return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, false, side, price, size, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new market order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketOrderAsync(string instrument, OrderSide side, long size, TimeInForce timeInForce = TimeInForce.Ioc)
         {
             return await NewMarketOrderAsync(instrument, null, side, size, timeInForce);
         }
 
+        /// <summary>
+        /// Place a new market order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, TimeInForce timeInForce = TimeInForce.Ioc)
         {
             return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, timeInForce);
         }
 
+        /// <summary>
+        /// Cancel an open order by order id
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="orderId">The order id assigned by the exchange</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task CancelOrderAsync(string instrument, long orderId)
         {
             await SendRestRequestAsync(
@@ -182,6 +262,12 @@ namespace DueDex
             );
         }
 
+        /// <summary>
+        /// Cancel an open order by client order id
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom order id</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task CancelOrderAsync(string instrument, string clientOrderId)
         {
             await SendRestRequestAsync(
@@ -196,6 +282,11 @@ namespace DueDex
             );
         }
 
+        /// <summary>
+        /// Subscribe to a WebSocket channel
+        /// </summary>
+        /// <param name="channel">Channel name</param>
+        /// <param name="instruments">A list of instruments to subscribe to for instrument channels only</param>
         public void Subscribe(ChannelType channel, params string[] instruments)
         {
             if (instruments.Length > 0)
@@ -223,9 +314,15 @@ namespace DueDex
             }
         }
 
+        /// <summary>
+        /// Start WebSocket connection
+        /// </summary>
         public void StartWebSocket()
         {
-            var webSocketThread = new Thread(RunWebSocket);
+            if (!(webSocketThread is null))
+                throw new InvalidOperationException("DueDex WebSocket client has already been started");
+
+            webSocketThread = new Thread(RunWebSocket);
             webSocketThread.Start();
         }
 
@@ -579,6 +676,7 @@ namespace DueDex
                                             var newOrder = new Order(
                                                 update.Instrument,
                                                 update.OrderId,
+                                                update.ClientOrderId,
                                                 update.Type.Value,
                                                 update.IsCloseOrder.Value,
                                                 update.Side.Value,

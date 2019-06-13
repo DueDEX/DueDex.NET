@@ -6,6 +6,7 @@ namespace DueDex.Internal
     {
         public string Instrument { get; set; }
         public long OrderId { get; set; }
+        public string ClientOrderId { get; set; }
         public OrderType? Type { get; set; }
         public bool? IsCloseOrder { get; set; }
         public OrderSide? Side { get; set; }
@@ -20,10 +21,11 @@ namespace DueDex.Internal
         public DateTime? CreateTime { get; set; }
         public DateTime? UpdateTime { get; set; }
 
-        public OrderUpdate(string instrument, long orderId, OrderType? type, bool? isCloseOrder, OrderSide? side, decimal? price, long? size, TimeInForce? timeInForce, decimal? notionalValue, OrderStatus? status, decimal? fillPrice, long? filledSize, decimal? accumulatedFees, DateTime? createTime, DateTime? updateTime)
+        public OrderUpdate(string instrument, long orderId, string clientOrderId, OrderType? type, bool? isCloseOrder, OrderSide? side, decimal? price, long? size, TimeInForce? timeInForce, decimal? notionalValue, OrderStatus? status, decimal? fillPrice, long? filledSize, decimal? accumulatedFees, DateTime? createTime, DateTime? updateTime)
         {
             Instrument = instrument;
             OrderId = orderId;
+            ClientOrderId = clientOrderId;
             Type = type;
             IsCloseOrder = isCloseOrder;
             Side = side;
