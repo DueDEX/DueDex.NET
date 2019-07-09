@@ -136,11 +136,12 @@ namespace DueDex
         /// <param name="instrument">Id of the instrument</param>
         /// <param name="price">The limit order price</param>
         /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitCloseOrderAsync(string instrument, decimal price, TimeInForce timeInForce = TimeInForce.Gtc)
+        public async Task<Order> NewLimitCloseOrderAsync(string instrument, decimal price, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
         {
-            return await NewLimitCloseOrderAsync(instrument, null, price, timeInForce);
+            return await NewLimitCloseOrderAsync(instrument, null, price, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -150,11 +151,12 @@ namespace DueDex
         /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
         /// <param name="price">The limit order price</param>
         /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitCloseOrderAsync(string instrument, string clientOrderId, decimal price, TimeInForce timeInForce = TimeInForce.Gtc)
+        public async Task<Order> NewLimitCloseOrderAsync(string instrument, string clientOrderId, decimal price, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, true, null, price, null, timeInForce);
+            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, true, null, price, null, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -179,7 +181,7 @@ namespace DueDex
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketCloseOrderAsync(string instrument, string clientOrderId, TimeInForce timeInForce = TimeInForce.Ioc)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, true, null, null, null, timeInForce);
+            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, true, null, null, null, timeInForce, false);
         }
 
         /// <summary>
@@ -190,11 +192,12 @@ namespace DueDex
         /// <param name="price">The limit order price</param>
         /// <param name="size">Order size</param>
         /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc)
+        public async Task<Order> NewLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
         {
-            return await NewLimitOrderAsync(instrument, null, side, price, size, timeInForce);
+            return await NewLimitOrderAsync(instrument, null, side, price, size, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -206,11 +209,12 @@ namespace DueDex
         /// <param name="price">The limit order price</param>
         /// <param name="size">Order size</param>
         /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc)
+        public async Task<Order> NewLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, false, side, price, size, timeInForce);
+            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, false, side, price, size, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -239,7 +243,7 @@ namespace DueDex
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public async Task<Order> NewMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, TimeInForce timeInForce = TimeInForce.Ioc)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, timeInForce);
+            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, timeInForce, false);
         }
 
         /// <summary>
@@ -326,7 +330,7 @@ namespace DueDex
             webSocketThread.Start();
         }
 
-        private async Task<Order> NewOrderAsync(string instrument, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide? side, decimal? price, long? size, TimeInForce? timeInForce)
+        private async Task<Order> NewOrderAsync(string instrument, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide? side, decimal? price, long? size, TimeInForce? timeInForce, bool postOnly)
         {
             return await SendRestRequestAsync<Order>(
                 HttpMethod.Post,
@@ -341,7 +345,8 @@ namespace DueDex
                     side = side,
                     price = price,
                     size = size,
-                    timeInForce = timeInForce
+                    timeInForce = timeInForce,
+                    postOnly = postOnly
                 }
             );
         }
@@ -369,6 +374,10 @@ namespace DueDex
                         else if (parValue.GetType().IsEnum)
                         {
                             parValueString = parValue.GetType().GetMember(parValue.ToString())[0].GetCustomAttribute<EnumMemberAttribute>().Value;
+                        }
+                        else if (parValue is decimal decimalValue)
+                        {
+                            parValueString = JsonConvert.SerializeObject(parValue);
                         }
                         else
                         {
@@ -433,7 +442,7 @@ namespace DueDex
             var response = await httpClient.SendAsync(hrm);
             string content = await response.Content.ReadAsStringAsync();
 
-            logger.LogTrace($"REST response from DueDEX on {method} {path}: {content}");
+            logger?.LogTrace($"REST response from DueDEX on {method} {path}: {content}");
 
             var resObj = JsonConvert.DeserializeObject<ApiResponse<T>>(content);
 
