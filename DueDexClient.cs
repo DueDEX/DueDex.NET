@@ -287,6 +287,24 @@ namespace DueDex
         }
 
         /// <summary>
+        /// Cancel all orders under a specific instrument
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public async Task CancelOrdersAsync(string instrument)
+        {
+            await SendRestRequestAsync(
+                HttpMethod.Delete,
+                "/v1/order",
+                true,
+                new
+                {
+                    instrument = instrument
+                }
+            );
+        }
+
+        /// <summary>
         /// Subscribe to a WebSocket channel
         /// </summary>
         /// <param name="channel">Channel name</param>
