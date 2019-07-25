@@ -376,43 +376,47 @@ namespace DueDex
 
         private async Task<T> SendRestRequestAsync<T>(HttpMethod method, string path, bool authenticate, object pars = null)
         {
-            // Loads pars into sorted list
-            var parList = new SortedDictionary<string, string>();
-            if (!(pars is null))
-                foreach (var propertyInfo in pars.GetType().GetProperties())
-                {
-                    var parValue = propertyInfo.GetValue(pars);
-                    if (!(parValue is null))
-                    {
-                        string parValueString;
-                        if (parValue is bool boolValue)
-                        {
-                            parValueString = boolValue ? "true" : "false";
-                        }
-                        else if (parValue.GetType().IsEnum)
-                        {
-                            parValueString = parValue.GetType().GetMember(parValue.ToString())[0].GetCustomAttribute<EnumMemberAttribute>().Value;
-                        }
-                        else if (parValue is decimal decimalValue)
-                        {
-                            parValueString = JsonConvert.SerializeObject(parValue);
-                        }
-                        else
-                        {
-                            parValueString = parValue.ToString();
-                        }
-
-                        parList.Add(propertyInfo.Name, parValueString);
-                    }
-                }
+            // For signature
+            string queryString = "", bodyString = "";
 
             Uri requestUri;
 
-            if (method == HttpMethod.Get && parList.Count > 0)
+            if (method == HttpMethod.Get && pars != null)
             {
+                // Loads pars into list
+                var parList = new Dictionary<string, string>();
+                if (!(pars is null))
+                    foreach (var propertyInfo in pars.GetType().GetProperties())
+                    {
+                        var parValue = propertyInfo.GetValue(pars);
+                        if (!(parValue is null))
+                        {
+                            string parValueString;
+                            if (parValue is bool boolValue)
+                            {
+                                parValueString = boolValue ? "true" : "false";
+                            }
+                            else if (parValue.GetType().IsEnum)
+                            {
+                                parValueString = parValue.GetType().GetMember(parValue.ToString())[0].GetCustomAttribute<EnumMemberAttribute>().Value;
+                            }
+                            else if (parValue is decimal decimalValue)
+                            {
+                                parValueString = JsonConvert.SerializeObject(parValue);
+                            }
+                            else
+                            {
+                                parValueString = parValue.ToString();
+                            }
+
+                            parList.Add(propertyInfo.Name, parValueString);
+                        }
+                    }
+
                 // Append all parameters on request uri
                 var uriBuilder = new UriBuilder($"{restBaseUrl}{path}");
-                uriBuilder.Query = string.Join("&", parList.Select(p => $"{p.Key}={WebUtility.UrlEncode(p.Value)}"));
+                queryString = string.Join("&", parList.Select(p => $"{p.Key}={WebUtility.UrlEncode(p.Value)}"));
+                uriBuilder.Query = queryString;
                 requestUri = uriBuilder.Uri;
             }
             else
@@ -425,13 +429,14 @@ namespace DueDex
 
             hrm.Headers.Add("Connection", "Keep-Alive");
 
-            if (method != HttpMethod.Get && parList.Count > 0)
+            if (method != HttpMethod.Get && pars != null)
             {
                 // Send par list in body
                 using (var textWriter = new StringWriter())
                 {
                     serializer.Serialize(textWriter, pars);
-                    hrm.Content = new StringContent(textWriter.ToString(), Encoding.UTF8, "application/json");
+                    bodyString = textWriter.ToString();
+                    hrm.Content = new StringContent(bodyString, Encoding.UTF8, "application/json");
                 }
             }
 
@@ -443,8 +448,7 @@ namespace DueDex
                 long expiration = timestamp + 30 * 1000;
 
                 // Computes signature
-                string parListString = string.Join("&", parList.Select(p => $"{p.Key}={WebUtility.UrlEncode(p.Value)}"));
-                string message = $"{method}|{path}|{timestamp}|{expiration}|{parListString}";
+                string message = $"{method}|{path}|{timestamp}|{expiration}|{queryString}|{bodyString}";
 
                 StringBuilder signatureHex = new StringBuilder();
                 using (var hmacsha256 = new HMACSHA256(Convert.FromBase64String(apiKeyPair.ApiSecret)))
