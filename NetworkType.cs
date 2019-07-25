@@ -42,6 +42,7 @@ namespace DueDex
                 case NetworkType.Mainnet:
                     return NetworkUrls.MainnetWebSocketEndpoint;
                 case NetworkType.Testnet:
+                    return NetworkUrls.TestnetWebSocketEndpoint;
                 default:
                     throw new InvalidEnumArgumentException(nameof(network), (int)network, typeof(NetworkType));
             }
