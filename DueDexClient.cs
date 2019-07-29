@@ -130,6 +130,33 @@ namespace DueDex
             this.logger = logger;
         }
 
+        public Task<Margin> GetMarginAsync(string currencySymbol)
+        {
+            return SendRestRequestAsync<Margin>(
+                HttpMethod.Get,
+                $"/v1/margin/{currencySymbol}",
+                true
+            );
+        }
+
+        public Task<Position> GetPositionAsync(string instrument)
+        {
+            return SendRestRequestAsync<Position>(
+                HttpMethod.Get,
+                $"/v1/position/{instrument}",
+                true
+            );
+        }
+
+        public async Task<IList<Order>> GetActiveOrdersAsync()
+        {
+            return await SendRestRequestAsync<Order[]>(
+                HttpMethod.Get,
+                $"/v1/order/active",
+                true
+            );
+        }
+
         /// <summary>
         /// Place a new limit close order.
         /// </summary>
