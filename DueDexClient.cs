@@ -130,6 +130,34 @@ namespace DueDex
             this.logger = logger;
         }
 
+        public Task<Order> GetOrderAsync(string instrument, long orderId)
+        {
+            return SendRestRequestAsync<Order>(
+                HttpMethod.Get,
+                $"/v1/order",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    orderId = orderId
+                }
+            );
+        }
+
+        public Task<Order> GetOrderAsync(string instrument, string clientOrderId)
+        {
+            return SendRestRequestAsync<Order>(
+                HttpMethod.Get,
+                $"/v1/order",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    clientOrderId = clientOrderId
+                }
+            );
+        }
+
         public Task<Margin> GetMarginAsync(string currencySymbol)
         {
             return SendRestRequestAsync<Margin>(
