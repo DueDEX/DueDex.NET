@@ -18,6 +18,10 @@ namespace DueDex.Models
         /// </summary>
         public decimal BestAsk { get; internal set; }
         /// <summary>
+        /// The real-time last price
+        /// </summary>
+        public decimal LastPrice { get; internal set; }
+        /// <summary>
         /// The real-time index price
         /// </summary>
         public decimal IndexPrice { get; internal set; }
@@ -60,11 +64,12 @@ namespace DueDex.Models
 
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public Ticker(string instrument, decimal bestBid, decimal bestAsk, decimal indexPrice, decimal markPrice, decimal fundingRate, DateTime nextFundingTime, decimal open, decimal high, decimal low, decimal close, long volume, long openInterest)
+        public Ticker(string instrument, decimal bestBid, decimal bestAsk, decimal lastPrice, decimal indexPrice, decimal markPrice, decimal fundingRate, DateTime nextFundingTime, decimal open, decimal high, decimal low, decimal close, long volume, long openInterest)
         {
             Instrument = instrument;
             BestBid = bestBid;
             BestAsk = bestAsk;
+            LastPrice = lastPrice;
             IndexPrice = indexPrice;
             MarkPrice = markPrice;
             FundingRate = fundingRate;

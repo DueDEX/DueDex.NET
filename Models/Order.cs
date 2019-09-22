@@ -32,11 +32,19 @@ namespace DueDex.Models
         /// <summary>
         /// Order price. Sent only when type is limit
         /// </summary>
-        public decimal Price { get; internal set; }
+        public decimal? Price { get; internal set; }
         /// <summary>
         /// Order size
         /// </summary>
         public long Size { get; internal set; }
+        /// <summary>
+        /// Stop order price. Sent only when type is stopMarket or stopLimit
+        /// </summary>
+        public decimal? StopPrice { get; internal set; }
+        /// <summary>
+        /// Stop order trigger type. Sent only when type is stopMarket or stopLimit
+        /// </summary>
+        public StopTriggerType? TriggerType { get; internal set; }
         /// <summary>
         /// Time in force of the order
         /// </summary>
@@ -72,7 +80,7 @@ namespace DueDex.Models
 
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public Order(string instrument, long orderId, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide side, decimal price, long size, TimeInForce timeInForce, decimal notionalValue, OrderStatus status, decimal fillPrice, long filledSize, decimal accumulatedFees, DateTime createTime, DateTime updateTime)
+        public Order(string instrument, long orderId, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide side, decimal? price, long size, decimal? stopPrice, StopTriggerType? triggerType, TimeInForce timeInForce, decimal notionalValue, OrderStatus status, decimal fillPrice, long filledSize, decimal accumulatedFees, DateTime createTime, DateTime updateTime)
         {
             Instrument = instrument;
             OrderId = orderId;
@@ -82,6 +90,8 @@ namespace DueDex.Models
             Side = side;
             Price = price;
             Size = size;
+            StopPrice = stopPrice;
+            TriggerType = triggerType;
             TimeInForce = timeInForce;
             NotionalValue = notionalValue;
             Status = status;

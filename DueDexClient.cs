@@ -186,60 +186,6 @@ namespace DueDex
         }
 
         /// <summary>
-        /// Place a new limit close order.
-        /// </summary>
-        /// <param name="instrument">Id of the instrument</param>
-        /// <param name="price">The limit order price</param>
-        /// <param name="timeInForce">Order time in force</param>
-        /// <param name="postOnly">Whether this order can only be maker</param>
-        /// <returns>Info of the new order</returns>
-        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitCloseOrderAsync(string instrument, decimal price, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
-        {
-            return await NewLimitCloseOrderAsync(instrument, null, price, timeInForce, postOnly);
-        }
-
-        /// <summary>
-        /// Place a new limit close order with a custom client order id.
-        /// </summary>
-        /// <param name="instrument">Id of the instrument</param>
-        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
-        /// <param name="price">The limit order price</param>
-        /// <param name="timeInForce">Order time in force</param>
-        /// <param name="postOnly">Whether this order can only be maker</param>
-        /// <returns>Info of the new order</returns>
-        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitCloseOrderAsync(string instrument, string clientOrderId, decimal price, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
-        {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, true, null, price, null, timeInForce, postOnly);
-        }
-
-        /// <summary>
-        /// Place a new market close order.
-        /// </summary>
-        /// <param name="instrument">Id of the instrument</param>
-        /// <param name="timeInForce">Order time in force</param>
-        /// <returns>Info of the new order</returns>
-        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewMarketCloseOrderAsync(string instrument, TimeInForce timeInForce = TimeInForce.Ioc)
-        {
-            return await NewMarketCloseOrderAsync(instrument, null, timeInForce);
-        }
-
-        /// <summary>
-        /// Place a new market close order with a custom client order id.
-        /// </summary>
-        /// <param name="instrument">Id of the instrument</param>
-        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
-        /// <param name="timeInForce">Order time in force</param>
-        /// <returns>Info of the new order</returns>
-        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewMarketCloseOrderAsync(string instrument, string clientOrderId, TimeInForce timeInForce = TimeInForce.Ioc)
-        {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, true, null, null, null, timeInForce, false);
-        }
-
-        /// <summary>
         /// Place a new limit order.
         /// </summary>
         /// <param name="instrument">Id of the instrument</param>
@@ -248,11 +194,12 @@ namespace DueDex
         /// <param name="size">Order size</param>
         /// <param name="timeInForce">Order time in force</param>
         /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
+        public Task<Order> NewLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = false)
         {
-            return await NewLimitOrderAsync(instrument, null, side, price, size, timeInForce, postOnly);
+            return NewLimitOrderAsync(instrument, null, side, price, size, timeInForce, postOnly, isCloseOrder);
         }
 
         /// <summary>
@@ -265,11 +212,12 @@ namespace DueDex
         /// <param name="size">Order size</param>
         /// <param name="timeInForce">Order time in force</param>
         /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false)
+        public Task<Order> NewLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = false)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Limit, false, side, price, size, timeInForce, postOnly);
+            return NewOrderAsync(instrument, clientOrderId, OrderType.Limit, isCloseOrder, side, price, size, null, null, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -278,12 +226,12 @@ namespace DueDex
         /// <param name="instrument">Id of the instrument</param>
         /// <param name="side">Order side</param>
         /// <param name="size">Order size</param>
-        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewMarketOrderAsync(string instrument, OrderSide side, long size, TimeInForce timeInForce = TimeInForce.Ioc)
+        public Task<Order> NewMarketOrderAsync(string instrument, OrderSide side, long size, bool isCloseOrder = false)
         {
-            return await NewMarketOrderAsync(instrument, null, side, size, timeInForce);
+            return NewMarketOrderAsync(instrument, null, side, size, isCloseOrder);
         }
 
         /// <summary>
@@ -293,12 +241,84 @@ namespace DueDex
         /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
         /// <param name="side">Order side</param>
         /// <param name="size">Order size</param>
-        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position</param>
         /// <returns>Info of the new order</returns>
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
-        public async Task<Order> NewMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, TimeInForce timeInForce = TimeInForce.Ioc)
+        public Task<Order> NewMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, bool isCloseOrder = false)
         {
-            return await NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, timeInForce, false);
+            return NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, null, null, TimeInForce.Ioc, false);
+        }
+
+        /// <summary>
+        /// Place a new stop market order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewStopMarketOrderAsync(string instrument, OrderSide side, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, bool isCloseOrder = true)
+        {
+            return NewStopMarketOrderAsync(instrument, null, side, size, stopPrice, triggerType, isCloseOrder);
+        }
+
+        /// <summary>
+        /// Place a new stop market order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewStopMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, bool isCloseOrder = true)
+        {
+            return NewOrderAsync(instrument, clientOrderId, OrderType.StopMarket, isCloseOrder, side, null, size, stopPrice, triggerType, TimeInForce.Ioc, false);
+        }
+
+        /// <summary>
+        /// Place a new stop limit order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewStopLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = true)
+        {
+            return NewStopLimitOrderAsync(instrument, null, side, price, size, stopPrice, triggerType, timeInForce, postOnly, isCloseOrder);
+        }
+
+        /// <summary>
+        /// Place a new stop limit order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewStopLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = true)
+        {
+            return NewOrderAsync(instrument, clientOrderId, OrderType.StopLimit, isCloseOrder, side, price, size, stopPrice, triggerType, timeInForce, postOnly);
         }
 
         /// <summary>
@@ -403,7 +423,7 @@ namespace DueDex
             webSocketThread.Start();
         }
 
-        private async Task<Order> NewOrderAsync(string instrument, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide? side, decimal? price, long? size, TimeInForce? timeInForce, bool postOnly)
+        private async Task<Order> NewOrderAsync(string instrument, string clientOrderId, OrderType type, bool isCloseOrder, OrderSide? side, decimal? price, long? size, decimal? stopPrice, StopTriggerType? triggerType, TimeInForce? timeInForce, bool postOnly)
         {
             return await SendRestRequestAsync<Order>(
                 HttpMethod.Post,
@@ -418,6 +438,8 @@ namespace DueDex
                     side = side,
                     price = price,
                     size = size,
+                    stopPrice = stopPrice,
+                    triggerType = triggerType,
                     timeInForce = timeInForce,
                     postOnly = postOnly
                 }
@@ -766,8 +788,10 @@ namespace DueDex
                                                 update.Type.Value,
                                                 update.IsCloseOrder.Value,
                                                 update.Side.Value,
-                                                update.Price ?? 0,
+                                                update.Price,
                                                 update.Size.Value,
+                                                update.StopPrice,
+                                                update.TriggerType,
                                                 update.TimeInForce.Value,
                                                 update.NotionalValue.Value,
                                                 update.Status.Value,

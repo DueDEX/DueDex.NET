@@ -7,6 +7,7 @@ namespace DueDex.Internal
         public string Instrument { get; set; }
         public decimal? BestBid { get; set; }
         public decimal? BestAsk { get; set; }
+        public decimal? LastPrice { get; set; }
         public decimal? IndexPrice { get; set; }
         public decimal? MarkPrice { get; set; }
         public decimal? FundingRate { get; set; }
@@ -18,11 +19,12 @@ namespace DueDex.Internal
         public long? Volume { get; set; }
         public long? OpenInterest { get; set; }
 
-        public TickerUpdate(string instrument, decimal? bestBid, decimal? bestAsk, decimal? indexPrice, decimal? markPrice, decimal? fundingRate, DateTime? nextFundingTime, decimal? open, decimal? high, decimal? low, decimal? close, long? volume, long? openInterest)
+        public TickerUpdate(string instrument, decimal? bestBid, decimal? bestAsk, decimal? lastPrice, decimal? indexPrice, decimal? markPrice, decimal? fundingRate, DateTime? nextFundingTime, decimal? open, decimal? high, decimal? low, decimal? close, long? volume, long? openInterest)
         {
             Instrument = instrument;
             BestBid = bestBid;
             BestAsk = bestAsk;
+            LastPrice = lastPrice;
             IndexPrice = indexPrice;
             MarkPrice = markPrice;
             FundingRate = fundingRate;

@@ -21,5 +21,9 @@ namespace DueDex
         /// Order cancelled
         /// </summary>
         Cancelled = 3,
+        /// <summary>
+        /// Stop order not yet triggered
+        /// </summary>
+        Untriggered = 4,
     }
 }
