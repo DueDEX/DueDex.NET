@@ -380,6 +380,50 @@ namespace DueDex
         }
 
         /// <summary>
+        /// Amend an order's price by order id
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="orderId">The order id assigned by the exchange</param>
+        /// <param name="newPrice">The new order price</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public async Task AmendOrderPriceAsync(string instrument, long orderId, decimal newPrice)
+        {
+            await SendRestRequestAsync(
+                new HttpMethod("PATCH"),
+                "/v1/order",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    orderId = orderId,
+                    price = newPrice
+                }
+            );
+        }
+
+        /// <summary>
+        /// Amend an order's price by client order id
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom order id</param>
+        /// <param name="newPrice">The new order price</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public async Task AmendOrderPriceAsync(string instrument, string clientOrderId, decimal newPrice)
+        {
+            await SendRestRequestAsync(
+                new HttpMethod("PATCH"),
+                "/v1/order",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    clientOrderId = clientOrderId,
+                    price = newPrice
+                }
+            );
+        }
+
+        /// <summary>
         /// Subscribe to a WebSocket channel
         /// </summary>
         /// <param name="channel">Channel name</param>
