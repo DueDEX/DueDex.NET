@@ -6,13 +6,14 @@
 
 	<PropertyGroup>
     <IsPackable>true</IsPackable>
-    <PackageVersion>1.6.0</PackageVersion>
+    <PackageVersion>1.7.0</PackageVersion>
     <PackageId>DueDex</PackageId>
   	<Authors>Jonathan LEI</Authors>
   	<Company>DueDEX Ltd.</Company>
 		<Description>The official C# client SDK for DueDEX</Description>
 		<Copyright>Copyright © DueDEX Ltd. 2019</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageIcon>DueDEX.png</PackageIcon>
 		<PackageIconUrl>https://raw.githubusercontent.com/DueDEX/DueDex.NET/master/Resources/DueDEX.png</PackageIconUrl>
 		<PackageTags>duedex</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
@@ -38,6 +39,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <None Include="Resources\DueDEX.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

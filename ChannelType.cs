@@ -29,5 +29,9 @@ namespace DueDex
         /// The margins channel
         /// </summary>
         Margins = 6,
+        /// <summary>
+        /// The executions channel
+        /// </summary>
+        Executions = 7,
     }
 }

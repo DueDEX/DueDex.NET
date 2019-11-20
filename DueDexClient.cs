@@ -62,6 +62,10 @@ namespace DueDex
         /// Occurs when positions are updated.
         /// </summary>
         public event EventHandler<PositionsUpdatedEventArgs> PositionsUpdated;
+        /// <summary>
+        /// Occurs when executions are updated.
+        /// </summary>
+        public event EventHandler<ExecutionsUpdatedEventArgs> ExecutionsUpdated;
 
         private readonly ILogger logger;
 
@@ -902,6 +906,12 @@ namespace DueDex
 
                                     PositionsUpdated?.Invoke(this, new PositionsUpdatedEventArgs(updatedPositions, positions, updateMessage.Timestamp));
                                 }
+                                else if (channel == "executions")
+                                {
+                                    var updateMessage = JsonConvert.DeserializeObject<ChannelMessage<IEnumerable<Execution>>>(messageReceived);
+
+                                    ExecutionsUpdated?.Invoke(this, new ExecutionsUpdatedEventArgs(updateMessage.Instrument, updateMessage.Data, updateMessage.Timestamp));
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -940,7 +950,7 @@ namespace DueDex
                     new ArraySegment<byte>(buffer, 0, buffer.Length),
                     WebSocketMessageType.Text,
                     true,
-                    new CancellationToken()
+                    CancellationToken.None
                 );
             }
         }
