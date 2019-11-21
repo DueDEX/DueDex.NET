@@ -134,6 +134,15 @@ namespace DueDex
             this.logger = logger;
         }
 
+        public Task<Ticker> GetTickerAsync(string instrument)
+        {
+            return SendRestRequestAsync<Ticker>(
+                HttpMethod.Get,
+                $"/v1/ticker/{instrument}",
+                false
+            );
+        }
+
         public Task<Order> GetOrderAsync(string instrument, long orderId)
         {
             return SendRestRequestAsync<Order>(
@@ -590,6 +599,7 @@ namespace DueDex
             string content = await response.Content.ReadAsStringAsync();
 
             logger?.LogTrace($"REST response from DueDEX on {method} {path}: {content}");
+            Console.WriteLine($"REST response from DueDEX on {method} {path}: {content}");
 
             var resObj = JsonConvert.DeserializeObject<ApiResponse<T>>(content);
 
