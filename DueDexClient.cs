@@ -355,6 +355,78 @@ namespace DueDex
         }
 
         /// <summary>
+        /// Place a new take profit market order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewTakeProfitMarketOrderAsync(string instrument, OrderSide side, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, bool isCloseOrder = true)
+        {
+            return NewTakeProfitMarketOrderAsync(instrument, null, side, size, stopPrice, triggerType, isCloseOrder);
+        }
+
+        /// <summary>
+        /// Place a new take profit market order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewTakeProfitMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, bool isCloseOrder = true)
+        {
+            return NewOrderAsync(instrument, clientOrderId, OrderType.TakeProfitMarket, isCloseOrder, side, null, size, stopPrice, triggerType, TimeInForce.Ioc, false);
+        }
+
+        /// <summary>
+        /// Place a new take profit limit order.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewTakeProfitLimitOrderAsync(string instrument, OrderSide side, decimal price, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = true)
+        {
+            return NewTakeProfitLimitOrderAsync(instrument, null, side, price, size, stopPrice, triggerType, timeInForce, postOnly, isCloseOrder);
+        }
+
+        /// <summary>
+        /// Place a new take profit limit order with a custom client order id.
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="clientOrderId">The custom client order id with a maximum length of 36 characters</param>
+        /// <param name="side">Order side</param>
+        /// <param name="price">The limit order price</param>
+        /// <param name="size">Order size</param>
+        /// <param name="stopPrice">Order stop price</param>
+        /// <param name="triggerType">Stop trigger type</param>
+        /// <param name="timeInForce">Order time in force</param>
+        /// <param name="postOnly">Whether this order can only be maker</param>
+        /// <param name="isCloseOrder">Whether this order can only reduce position. Defaults to true</param>
+        /// <returns>Info of the new order</returns>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public Task<Order> NewTakeProfitLimitOrderAsync(string instrument, string clientOrderId, OrderSide side, decimal price, long size, decimal stopPrice, StopTriggerType triggerType = StopTriggerType.LastPrice, TimeInForce timeInForce = TimeInForce.Gtc, bool postOnly = false, bool isCloseOrder = true)
+        {
+            return NewOrderAsync(instrument, clientOrderId, OrderType.TakeProfitLimit, isCloseOrder, side, price, size, stopPrice, triggerType, timeInForce, postOnly);
+        }
+
+        /// <summary>
         /// Cancel an open order by client order id
         /// </summary>
         /// <param name="instrument">Id of the instrument</param>

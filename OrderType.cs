@@ -27,5 +27,15 @@ namespace DueDex
         /// </summary>
         [EnumMember(Value = "stopLimit")]
         StopLimit = 3,
+        /// <summary>
+        /// Take profit market order
+        /// </summary>
+        [EnumMember(Value = "takeProfitMarket")]
+        TakeProfitMarket = 4,
+        /// <summary>
+        /// Take profit limit order
+        /// </summary>
+        [EnumMember(Value = "takeProfitLimit")]
+        TakeProfitLimit = 5,
     }
 }
