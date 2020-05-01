@@ -509,6 +509,46 @@ namespace DueDex
         }
 
         /// <summary>
+        /// Change the leverage of a position
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="leverage">Target leverage. 0 for cross margin</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public async Task ChangePositionLeverageAsync(string instrument, decimal leverage)
+        {
+            await SendRestRequestAsync(
+                HttpMethod.Post,
+                "/v1/position/leverage",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    leverage = leverage
+                }
+            );
+        }
+
+        /// <summary>
+        /// Transfer margin to / from a position
+        /// </summary>
+        /// <param name="instrument">Id of the instrument</param>
+        /// <param name="amount">Amount of margin to transfer into the position. Negative for outward transfers</param>
+        /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
+        public async Task TransferPositionMarginAsync(string instrument, decimal amount)
+        {
+            await SendRestRequestAsync(
+                HttpMethod.Post,
+                "/v1/position/margin/transfer",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    amount = amount
+                }
+            );
+        }
+
+        /// <summary>
         /// Subscribe to a WebSocket channel
         /// </summary>
         /// <param name="channel">Channel name</param>
