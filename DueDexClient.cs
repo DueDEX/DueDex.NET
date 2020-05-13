@@ -171,6 +171,15 @@ namespace DueDex
             );
         }
 
+        public Task<IReadOnlyList<Margin>> GetMarginsAsync()
+        {
+            return SendRestRequestAsync<IReadOnlyList<Margin>>(
+                HttpMethod.Get,
+                $"/v1/margin",
+                true
+            );
+        }
+
         public Task<Margin> GetMarginAsync(string currencySymbol)
         {
             return SendRestRequestAsync<Margin>(
