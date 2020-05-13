@@ -171,6 +171,24 @@ namespace DueDex
             );
         }
 
+        public Task<IReadOnlyList<Order>> GetAllOrdersAsync(string instrument, int start = 0, int limit = 100, bool reverse = true, DateTime? fromTime = null, DateTime? toTime = null)
+        {
+            return SendRestRequestAsync<IReadOnlyList<Order>>(
+                HttpMethod.Get,
+                $"/v1/order/all",
+                true,
+                new
+                {
+                    instrument = instrument,
+                    start = start,
+                    limit = limit,
+                    reverse = reverse,
+                    fromTime = fromTime,
+                    toTime = toTime,
+                }
+            );
+        }
+
         public Task<IReadOnlyList<Margin>> GetMarginsAsync()
         {
             return SendRestRequestAsync<IReadOnlyList<Margin>>(
