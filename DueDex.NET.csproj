@@ -6,7 +6,7 @@
 
 	<PropertyGroup>
     <IsPackable>true</IsPackable>
-    <PackageVersion>1.9.3</PackageVersion>
+    <PackageVersion>1.9.4</PackageVersion>
     <PackageId>DueDex</PackageId>
   	<Authors>Jonathan LEI</Authors>
   	<Company>DueDEX Ltd.</Company>
