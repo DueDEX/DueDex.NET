@@ -134,6 +134,15 @@ namespace DueDex
             this.logger = logger;
         }
 
+        public Task<IReadOnlyList<Instrument>> GetInstrumentsAsync()
+        {
+            return SendRestRequestAsync<IReadOnlyList<Instrument>>(
+                HttpMethod.Get,
+                $"/v1/instrument",
+                false
+            );
+        }
+
         public Task<Ticker> GetTickerAsync(string instrument)
         {
             return SendRestRequestAsync<Ticker>(
