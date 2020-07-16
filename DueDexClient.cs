@@ -143,6 +143,15 @@ namespace DueDex
             );
         }
 
+        public Task<IReadOnlyList<Ticker>> GetTickersAsync()
+        {
+            return SendRestRequestAsync<IReadOnlyList<Ticker>>(
+                HttpMethod.Get,
+                "/v1/ticker",
+                false
+            );
+        }
+
         public Task<Ticker> GetTickerAsync(string instrument)
         {
             return SendRestRequestAsync<Ticker>(
