@@ -304,7 +304,7 @@ namespace DueDex
         /// <exception cref="DueDexApiException">Thrown when the server responds with a non-success code</exception>
         public Task<Order> NewMarketOrderAsync(string instrument, string clientOrderId, OrderSide side, long size, bool isCloseOrder = false)
         {
-            return NewOrderAsync(instrument, clientOrderId, OrderType.Market, false, side, null, size, null, null, TimeInForce.Ioc, false);
+            return NewOrderAsync(instrument, clientOrderId, OrderType.Market, isCloseOrder, side, null, size, null, null, TimeInForce.Ioc, false);
         }
 
         /// <summary>
