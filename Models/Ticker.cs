@@ -61,10 +61,14 @@ namespace DueDex.Models
         /// The real-time open interest in contracts
         /// </summary>
         public long OpenInterest { get; internal set; }
+        /// <summary>
+        /// The US-dollar-dominated value of contracts traded in the sliding 24-hour window. Updated every 5 seconds
+        /// </summary>
+        public decimal VolumeUsd { get; internal set; }
 
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public Ticker(string instrument, decimal bestBid, decimal bestAsk, decimal lastPrice, decimal indexPrice, decimal markPrice, decimal fundingRate, DateTime nextFundingTime, decimal open, decimal high, decimal low, decimal close, long volume, long openInterest)
+        public Ticker(string instrument, decimal bestBid, decimal bestAsk, decimal lastPrice, decimal indexPrice, decimal markPrice, decimal fundingRate, DateTime nextFundingTime, decimal open, decimal high, decimal low, decimal close, long volume, long openInterest, decimal volumeUsd)
         {
             Instrument = instrument;
             BestBid = bestBid;
@@ -80,6 +84,7 @@ namespace DueDex.Models
             Close = close;
             Volume = volume;
             OpenInterest = openInterest;
+            VolumeUsd = volumeUsd;
         }
 
         internal void Convert(Action<Ticker> converter)
