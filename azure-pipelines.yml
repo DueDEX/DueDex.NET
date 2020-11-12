@@ -3,53 +3,53 @@
 # Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-name: '1.0.0$(rev:.r)'
+name: "1.0.0$(rev:.r)"
 
 variables:
-  parameters.restoreBuildProjects: '**/DueDex.NET.csproj'
+  parameters.restoreBuildProjects: "**/DueDex.NET.csproj"
 
 trigger:
-- master
+  - master
 
 jobs:
-- job: BuildJob
+  - job: BuildJob
 
-  displayName: Build Job
+    displayName: Build Job
 
-  pool:
-    name: Default
+    pool:
+      vmImage: ubuntu-latest
 
-  variables:
-    buildConfiguration: 'Release'
+    variables:
+      buildConfiguration: "Release"
 
-  steps:
-  - checkout: self
-    submodules: recursive
+    steps:
+      - checkout: self
+        submodules: recursive
 
-  - task: DotNetCoreCLI@2
-    displayName: Restore
-    inputs:
-      command: restore
-      projects: '$(parameters.restoreBuildProjects)'
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: restore
+          projects: "$(parameters.restoreBuildProjects)"
 
-  - task: DotNetCoreCLI@2
-    displayName: Build
-    inputs:
-      projects: '$(parameters.restoreBuildProjects)'
-      arguments: '--configuration $(buildConfiguration)'
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          projects: "$(parameters.restoreBuildProjects)"
+          arguments: "--configuration $(buildConfiguration)"
 
-  - task: DotNetCoreCLI@2
-    displayName: Publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: '$(parameters.restoreBuildProjects)'
-      arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
-      zipAfterPublish: false
-      modifyOutputPath: true
+      - task: DotNetCoreCLI@2
+        displayName: Publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: "$(parameters.restoreBuildProjects)"
+          arguments: "--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)"
+          zipAfterPublish: false
+          modifyOutputPath: true
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact'
-    inputs:
-      PathtoPublish: '$(build.artifactstagingdirectory)'
-    condition: succeededOrFailed()
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact"
+        inputs:
+          PathtoPublish: "$(build.artifactstagingdirectory)"
+        condition: succeededOrFailed()
